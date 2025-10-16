@@ -29,7 +29,7 @@ header>#main-logo {
 }
 
 body>header>h1 {
-  margin: auto;
+  margin-block: auto;
 }
 
 /* NAVBAR */
