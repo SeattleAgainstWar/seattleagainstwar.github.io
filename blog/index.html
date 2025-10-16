@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Seattle Against War</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/index.js" type="module"></script>
+  <script src="https://unpkg.com/snarkdown/dist/snarkdown.umd.js"></script>
+</head>
+
+<body>
+  <script>
+    const toHash = (title) => "#" + title.toLowerCase().replace(' ', '-');
+    const renderNoHash = (data) => {
+      Object.entries(data).forEach(([hash, value]) => {
+        document
+          .querySelector("main")
+          .insertAdjacentHTML(
+            "afterbegin",
+            `<blog-card
+              title="${value.title}"
+              date="${value.date}"
+              href="${hash}">
+            </blog-card>`
+          );
+      });
+    }
+    const renderWithHash = (data) => {
+      const body = snarkdown(data.body);
+      document.querySelector("main").innerHTML = `
+        <hgroup>
+          <h2>${data.title}</h2>
+          <p>
+            <time datetime="${data.date}">${data.date}</time>
+          </p>
+        </hgroup>
+        ${body}
+      `;
+    }
+    function checkHash() {
+      fetch("https://api.github.com/repos/SeattleAgainstWar/seattleagainstwar.github.io/issues?labels=blogpost")
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+          let compiled = {};
+          data.forEach((item, index) => {
+            compiled[toHash(item.title)] = {title: item.title, date: item.created_at, body: item.body};
+          })
+          return compiled;
+        })
+        .then(data => {
+          const hash = window.location.hash;
+          if (hash in data) {
+            renderWithHash(data[hash]);
+          } else {
+            renderNoHash(data);
+          }
+        });
+    }
+
+    window.addEventListener('hashchange', checkHash);
+    window.addEventListener('load', checkHash);
+  </script>
+  <saw-header page="blog"></saw-header>
+  <main></main>
+</body>
+
+</html>
